@@ -1,47 +1,57 @@
 from plexapi.server import PlexServer
+import datetime
 
-# === Configuration Section ===
-PLEX_URL = 'http://localhost:32400'  # URL of your Plex server (use IP if not local)
-PLEX_TOKEN = 'YOUR_PLEX_TOKEN_HERE'  # Your Plex token from browser developer tools
-DRY_RUN = True  # Set to False to actually remove labels; True = simulate only
+# === Configuration ===
+PLEX_URL = 'http://localhost:32400'       # Your Plex server URL or IP
+PLEX_TOKEN = 'YOUR_PLEX_TOKEN_HERE'       # Your Plex token
+DRY_RUN = True                             # True = simulate only, False = actually remove labels
+ENABLE_LOG = True                          # True = save actions to log file
+
+LOG_FILE = "label_removal.log"             # Log filename
+
+def log(message):
+    """
+    Logs a message to the console and optionally to a log file.
+    """
+    print(message)
+    if ENABLE_LOG:
+        with open(LOG_FILE, 'a', encoding='utf-8') as f:
+            f.write(f"{datetime.datetime.now()} - {message}\n")
 
 def remove_all_labels(library_name):
     """
-    Connects to the specified library and removes all labels from each item.
-    In dry-run mode, it only prints what it would do.
+    Removes all labels from items in the specified library.
     """
-    # Connect to Plex
     plex = PlexServer(PLEX_URL, PLEX_TOKEN)
-    
-    # Access the specific library (Movies or TV Shows)
     library = plex.library.section(library_name)
-    print(f"\n--- Processing library: {library_name} ---")
+    log(f"\n--- Processing library: {library_name} ---")
 
-    # Loop through every item in the library
     for item in library.all():
         if item.labels:
-            # Collect the current labels
             label_list = [label.tag for label in item.labels]
-            print(f"{'[DRY RUN]' if DRY_RUN else '[REMOVE]'} {item.title} - Labels: {label_list}")
+            log(f"{'[DRY RUN]' if DRY_RUN else '[REMOVE]'} {item.title} - Labels: {label_list}")
             
-            # If not a dry run, remove all labels
             if not DRY_RUN:
                 for label in label_list:
                     item.removeLabel(label)
-                item.reload()  # Reload the item to reflect changes
+                item.reload()
         else:
-            print(f"[SKIP] {item.title} has no labels.")  # Nothing to remove
+            log(f"[SKIP] {item.title} has no labels.")
 
 def main():
     """
-    Main function that processes both the Movies and TV Shows libraries.
+    Main entry point for the script.
     """
-    for library in ['Movies', 'TV Shows']:  # Modify if your library names differ
+    # Clear old log file if logging is enabled
+    if ENABLE_LOG:
+        with open(LOG_FILE, 'w', encoding='utf-8') as f:
+            f.write("=== Plex Label Removal Log ===\n")
+
+    for library in ['Movies', 'TV Shows']:
         try:
             remove_all_labels(library)
         except Exception as e:
-            print(f"[ERROR] Failed to process {library}: {e}")
+            log(f"[ERROR] Failed to process {library}: {e}")
 
-# === Entry Point ===
 if __name__ == "__main__":
     main()
