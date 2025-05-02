@@ -21,11 +21,19 @@ pip install plexapi
 ```
 
 ## 🔑 How to Get Your Plex Token
-
+ Way 1
 1. Open [https://app.plex.tv](https://app.plex.tv)
 2. Open Developer Tools > Network tab
 3. Filter for `X-Plex-Token` in network requests
 4. Copy your token from a request
+
+ Way 2
+1. Open [https://app.plex.tv](https://app.plex.tv)
+2. Go to an Episode or Movie
+3. Click 3 dots
+4. Choose Get Info
+5. Click View XML
+6. This will open in a new tab the Plex token will be at the end of the url
 
 ## 🛠️ Configuration
 
